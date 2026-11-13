@@ -40,3 +40,9 @@ The self-hosted workflow now supports three *manually selected* modes:
 These are preliminary admission limits, not promised sufficient resources for every build host. A parse PASS proves recipe metadata resolves under the selected Yocto toolchain; it does **not** produce an image or establish bootability. The runner must already exist in this repository with labels `self-hosted`, `linux`, `x64`; this connection cannot confirm runner registration or remotely dispatch this workflow.
 
 Do not use the GPIO Raspberry Pi or a production server for the full build without isolating capacity. Workflow artifacts omit large images and raw BitBake logs; preserve reviewed diagnostic logs privately when investigating failures.
+
+## Mandatory post-build artifact acceptance
+
+The workflow now treats full BitBake success as **necessary but not sufficient**. A build PASS also requires `tests/verify_edge_artifacts.py` to find **one distinct fresh, non-empty** `aion-edge-image-*.wic.bz2` in the expected deploy folder, plus a fresh image package manifest explicitly containing `aion-health`. Stale images, missing manifests, ambiguous outputs and symlinks escaping the deployment tree are rejected.
+
+If accepted, it creates `aion-image-evidence.json` containing image and manifest SHA256, size and scope. This is an inventory checksum, not a cryptographic signature or proof of physical boot. No artifact is automatically flashed. Test images must still boot on the Pi 4B before T007 or AT-01 is accepted.
