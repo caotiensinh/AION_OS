@@ -26,3 +26,17 @@ The lightweight CI now uses pinned kas 5.5 to parse the real kas YAML, in additi
 A separate `AION Edge self-hosted build` workflow is strictly manual (`workflow_dispatch`) and runs only on a Linux x86-64 self-hosted runner. The `validate` mode checks the manifest without building; the `build` mode requires at least 120 GiB free disk and 16 GiB RAM and is subject to a 240-minute cap. This workflow has not been triggered and does not mean a runner is currently available.
 
 For build evidence, inspect its artifacts and actual BitBake logs. Never claim Raspberry Pi boot PASS before a separately recorded physical serial-console test.
+
+## BitBake parse gate
+
+The self-hosted workflow now supports three *manually selected* modes:
+
+| Mode | Expected work | Minimum resources |
+|---|---|---|
+| `validate` | parse kas YAML and validate pinned revisions; no layer clone | 1 GiB free and 1 GiB RAM |
+| `parse` | checkout upstream layers, run `bitbake -p`, then evaluate `bitbake -e aion-edge-image` | 30 GiB free and 8 GiB RAM |
+| `build` | perform the same metadata parse, then compile the target image | 120 GiB free and 16 GiB RAM |
+
+These are preliminary admission limits, not promised sufficient resources for every build host. A parse PASS proves recipe metadata resolves under the selected Yocto toolchain; it does **not** produce an image or establish bootability. The runner must already exist in this repository with labels `self-hosted`, `linux`, `x64`; this connection cannot confirm runner registration or remotely dispatch this workflow.
+
+Do not use the GPIO Raspberry Pi or a production server for the full build without isolating capacity. Workflow artifacts omit large images and raw BitBake logs; preserve reviewed diagnostic logs privately when investigating failures.
