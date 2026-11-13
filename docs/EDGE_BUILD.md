@@ -39,3 +39,7 @@ A first-party `meta-aion` image recipe and offline one-shot health script are in
 A dedicated [G1 BitBake metadata parse](../.github/workflows/g1-bitbake-parse.yml) workflow on ordinary `ubuntu-24.04` is triggered only by pull requests changing BSP/Yocto layer metadata or via explicit dispatch. Standard GitHub-hosted runners are free for public repositories (not larger runners). The job has a 25-minute timeout, does **not** build an image and refuses to proceed if it lacks 8 GiB free disk or 4 GiB RAM.
 
 It installs the pinned `kas==5.5`, checks out pinned upstream layers, executes `bitbake -p`, evaluates `aion-health` and `aion-edge-image` metadata, and checks the fully expanded `IMAGE_INSTALL` includes `aion-health`. Record its actual Actions run status; workflow source alone is **not** proof of BitBake parse PASS. Physical boot and image artifact gates remain separate.
+
+### Metadata parse failure diagnosed on Yocto 6.0
+
+The first **real** metadata run reached BitBake on Ubuntu 22.04 but failed when parsing `aion-health_0.1.0.bb`: `Using S = ${WORKDIR} is no longer supported`. This is an actual recipe defect exposed by BitBake (not by kas dump). Replaced `S` with `"${UNPACKDIR}"` and moved both installed source paths to `"${S}/..."` in accordance with Yocto's single-file recipe guidance. A host regression assertion prevents reintroducing `S = ${WORKDIR}`. This fix must be validated in a subsequent actual BitBake parse before marking metadata PASS.

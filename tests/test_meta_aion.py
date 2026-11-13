@@ -40,6 +40,11 @@ class MetaAionTests(unittest.TestCase):
         self.assertIn("inherit systemd", text)
         self.assertIn('SYSTEMD_SERVICE:${PN} = "aion-health.service"', text)
         self.assertIn("aion-health.sh", text)
+        self.assertIn('S = "${UNPACKDIR}"', text)
+        self.assertNotIn('S = "${WORKDIR}"', text)
+        self.assertIn('${S}/aion-health.sh', text)
+        self.assertIn('${S}/aion-health.service', text)
+        self.assertNotIn('${WORKDIR}/aion-health', text)
 
     def test_unprivileged_oneshot(self):
         text = SVC.read_text()
