@@ -8,7 +8,7 @@
 - [ ] T006 Implement signed ARM64 image manifest.
 - [ ] T007 Build a Raspberry Pi 4B bootable image.
 - [ ] T008 Verify offline boot and AI-off watchdog.
-- [ ] T009 Define capability/health wire schemas and fixtures.
+- [x] T009 Define capability/health wire schemas and fixtures (host codec; cross-target validation remains AT-21/22 TODO).
 - [ ] T010 Implement event queue and bounded inference admission.
 - [ ] T011 Implement model digest and platform compatibility validation.
 - [ ] T012 Add non-root service isolation and resource caps.

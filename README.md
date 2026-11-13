@@ -58,6 +58,7 @@ This validates the small host-side policy prototype, **not** kernel integration 
 - [Task list](specs/001-ai-native-platform/tasks.md)
 - [Acceptance evidence checklist](specs/001-ai-native-platform/checklists/acceptance.md)
 - [Policy contract](specs/001-ai-native-platform/contracts/policy-v0.md)
+- [Capability/health binary wire contract](specs/001-ai-native-platform/contracts/capability-health-wire-v1.md)
 - [Contribution guide](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
 
