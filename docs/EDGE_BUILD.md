@@ -33,3 +33,9 @@ Capture the resolved layer revisions, bitbake version, distro, `MACHINE`, `DISTR
 
 ## Next integration
 A first-party `meta-aion` image recipe and offline one-shot health script are included. BitBake parsing/build and Pi boot remain unverified; device identity, full health service and AI agent remain future work. No signing, secure boot or rollback is claimed at this point.
+
+## Lightweight real metadata parse on a standard public runner
+
+A dedicated [G1 BitBake metadata parse](../.github/workflows/g1-bitbake-parse.yml) workflow on ordinary `ubuntu-24.04` is triggered only by pull requests changing BSP/Yocto layer metadata or via explicit dispatch. Standard GitHub-hosted runners are free for public repositories (not larger runners). The job has a 25-minute timeout, does **not** build an image and refuses to proceed if it lacks 8 GiB free disk or 4 GiB RAM.
+
+It installs the pinned `kas==5.5`, checks out pinned upstream layers, executes `bitbake -p`, evaluates `aion-health` and `aion-edge-image` metadata, and checks the fully expanded `IMAGE_INSTALL` includes `aion-health`. Record its actual Actions run status; workflow source alone is **not** proof of BitBake parse PASS. Physical boot and image artifact gates remain separate.
