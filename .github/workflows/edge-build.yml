@@ -5,12 +5,13 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'validate = manifest parse only; build = compile Yocto image'
+        description: 'validate = kas YAML only; parse = real BitBake metadata; build = parse then compile'
         required: true
         type: choice
         default: validate
         options:
           - validate
+          - parse
           - build
 
 permissions:
@@ -41,14 +42,23 @@ jobs:
           command -v make
           command -v tar
           command -v xz
-          # Do not start a large image build on a machine short of resources.
+          # First prove the intended work filesystem has sufficient capacity.
+          # Real BitBake metadata parse also clones layers and requires ample space.
+          free_kib=$(df -Pk "$GITHUB_WORKSPACE" | awk 'NR==2 {print $4}')
+          mem_kib=$(awk '/MemTotal:/ {print $2}' /proc/meminfo)
           if [ "${{ inputs.mode }}" = "build" ]; then
-            free_kib=$(df -Pk . | awk 'NR==2 {print $4}')
-            mem_kib=$(awk '/MemTotal:/ {print $2}' /proc/meminfo)
-            if [ "$free_kib" -lt 125829120 ] || [ "$mem_kib" -lt 16777216 ]; then
-              echo "::error::Yocto full build requires at least 120 GiB free and 16 GiB RAM."
-              exit 1
-            fi
+            min_free_kib=125829120
+            min_mem_kib=16777216
+          elif [ "${{ inputs.mode }}" = "parse" ]; then
+            min_free_kib=31457280
+            min_mem_kib=8388608
+          else
+            min_free_kib=1048576
+            min_mem_kib=1048576
+          fi
+          if [ "$free_kib" -lt "$min_free_kib" ] || [ "$mem_kib" -lt "$min_mem_kib" ]; then
+            echo "::error::Insufficient RAM or free workspace capacity for the selected mode."
+            exit 1
           fi
           echo "RUNNER=$(uname -a)"
           echo "GIT_SHA=$(git rev-parse HEAD)"
@@ -68,6 +78,15 @@ jobs:
           export KAS_WORK_DIR="$GITHUB_WORKSPACE"
           "$RUNNER_TEMP/aion-kas-venv/bin/kas" dump --format json bsp/raspberrypi4-64.yml > "$RUNNER_TEMP/aion-kas-expanded.json"
           python3 tests/validate_kas_dump.py "$RUNNER_TEMP/aion-kas-expanded.json"
+      - name: BitBake metadata parse and target availability
+        if: ${{ inputs.mode == 'parse' || inputs.mode == 'build' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          export KAS_WORK_DIR="$GITHUB_WORKSPACE"
+          # Parse recipe metadata and verify that AION's image target can be resolved.
+          # This clones source layers but does not compile the image.
+          "$RUNNER_TEMP/aion-kas-venv/bin/kas" shell bsp/raspberrypi4-64.yml -c 'bitbake -p && bitbake -e aion-edge-image >/dev/null' 2>&1 | tee "$RUNNER_TEMP/aion-bitbake-parse.log"
       - name: Build on self-hosted runner (explicit mode only)
         if: ${{ inputs.mode == 'build' }}
         shell: bash
@@ -86,7 +105,8 @@ jobs:
             echo "machine=raspberrypi4-64"
             echo "UTC=$(date -u +%FT%TZ)"
             echo "host=$(uname -m)"
-            echo "build_log=available_only_when_build_selected"
+            echo "bitbake_parse_attempted=${{ inputs.mode != 'validate' }}"
+            echo "image_build_attempted=${{ inputs.mode == 'build' }}"
           } > "$RUNNER_TEMP/aion-evidence.txt"
           find "$GITHUB_WORKSPACE/build/tmp/deploy/images/raspberrypi4-64" -maxdepth 1 -type f \( -name '*.wic*' -o -name '*.manifest' \) -exec sha256sum '{}' \; > "$RUNNER_TEMP/aion-image-sha256.txt" 2>/dev/null || true
       - name: Upload bounded diagnostic artifacts
