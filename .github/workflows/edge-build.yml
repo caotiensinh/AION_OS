@@ -1,0 +1,102 @@
+name: AION Edge self-hosted build
+run-name: AION Edge ${{ inputs.mode }} - ${{ github.sha }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'validate = manifest parse only; build = compile Yocto image'
+        required: true
+        type: choice
+        default: validate
+        options:
+          - validate
+          - build
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aion-edge-build
+  cancel-in-progress: false
+
+jobs:
+  edge:
+    # Opt-in only: no expensive builds on GitHub-hosted runners.
+    runs-on: [self-hosted, linux, x64]
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - name: Environment and safety preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(id -u)" -ne 0
+          test -d meta-aion/conf
+          test -d bsp
+          test -f bsp/raspberrypi4-64.yml
+          command -v git
+          command -v python3
+          command -v gcc
+          command -v make
+          command -v tar
+          command -v xz
+          # Do not start a large image build on a machine short of resources.
+          if [ "${{ inputs.mode }}" = "build" ]; then
+            free_kib=$(df -Pk . | awk 'NR==2 {print $4}')
+            mem_kib=$(awk '/MemTotal:/ {print $2}' /proc/meminfo)
+            if [ "$free_kib" -lt 125829120 ] || [ "$mem_kib" -lt 16777216 ]; then
+              echo "::error::Yocto full build requires at least 120 GiB free and 16 GiB RAM."
+              exit 1
+            fi
+          fi
+          echo "RUNNER=$(uname -a)"
+          echo "GIT_SHA=$(git rev-parse HEAD)"
+          df -h .
+          free -h
+      - name: Install pinned kas in isolated virtual environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m venv "$RUNNER_TEMP/aion-kas-venv"
+          "$RUNNER_TEMP/aion-kas-venv/bin/python" -m pip install 'kas==5.5'
+          "$RUNNER_TEMP/aion-kas-venv/bin/kas" --version
+      - name: Validate manifest using kas parser
+        shell: bash
+        run: |
+          set -euo pipefail
+          export KAS_WORK_DIR="$GITHUB_WORKSPACE"
+          "$RUNNER_TEMP/aion-kas-venv/bin/kas" dump --format json bsp/raspberrypi4-64.yml > "$RUNNER_TEMP/aion-kas-expanded.json"
+          python3 tests/validate_kas_dump.py "$RUNNER_TEMP/aion-kas-expanded.json"
+      - name: Build on self-hosted runner (explicit mode only)
+        if: ${{ inputs.mode == 'build' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          export KAS_WORK_DIR="$GITHUB_WORKSPACE"
+          "$RUNNER_TEMP/aion-kas-venv/bin/kas" build bsp/raspberrypi4-64.yml 2>&1 | tee "$RUNNER_TEMP/aion-bitbake.log"
+      - name: Record build evidence without secrets or whole disk images
+        if: always()
+        shell: bash
+        run: |
+          set -eu
+          {
+            echo "sha=$(git rev-parse HEAD)"
+            echo "mode=${{ inputs.mode }}"
+            echo "machine=raspberrypi4-64"
+            echo "UTC=$(date -u +%FT%TZ)"
+            echo "host=$(uname -m)"
+            echo "build_log=available_only_when_build_selected"
+          } > "$RUNNER_TEMP/aion-evidence.txt"
+          find "$GITHUB_WORKSPACE/build/tmp/deploy/images/raspberrypi4-64" -maxdepth 1 -type f \( -name '*.wic*' -o -name '*.manifest' \) -exec sha256sum '{}' \; > "$RUNNER_TEMP/aion-image-sha256.txt" 2>/dev/null || true
+      - name: Upload bounded diagnostic artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aion-edge-evidence-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/aion-evidence.txt
+            ${{ runner.temp }}/aion-image-sha256.txt
+            ${{ runner.temp }}/aion-kas-expanded.json
+          if-no-files-found: warn
+          retention-days: 14
