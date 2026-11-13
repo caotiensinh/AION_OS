@@ -51,6 +51,7 @@ This validates the small host-side policy prototype, **not** kernel integration 
 - [Product vision](docs/PRODUCT_VISION.md)
 - [System architecture](docs/ARCHITECTURE.md)
 - [Variant matrix](docs/VARIANTS.md)
+- [AION Edge Yocto bring-up and build prerequisites](docs/EDGE_BUILD.md)
 - [Decision: AI outside kernel](docs/adr/0001-kernel-boundary.md)
 - [Spec Kit constitution](.specify/memory/constitution.md)
 - [Platform specification](specs/001-ai-native-platform/spec.md)

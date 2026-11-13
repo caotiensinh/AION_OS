@@ -1,0 +1,41 @@
+# AION OS G1: pinned upstream baseline; no custom AION distro or image yet.
+# Review upstream commit and supply-chain risks before updating any pin.
+header:
+  version: 14
+machine: raspberrypi4-64
+distro: poky
+target: core-image-minimal
+repos:
+  bitbake:
+    url: https://github.com/openembedded/bitbake.git
+    commit: 6e260eb6ab1631607ea414d9ff8ede1155faa5d9
+    layers:
+      .: disabled
+  core:
+    url: https://github.com/openembedded/openembedded-core.git
+    commit: 2285da08068a6d1b4a64c9a52d85a58be50e4679
+    layers:
+      meta:
+  meta-yocto:
+    url: https://github.com/yoctoproject/meta-yocto.git
+    commit: 79b6d87030178bed0088ad3b00aa6dfbabac37c4
+    layers:
+      meta-poky:
+  meta-openembedded:
+    url: https://github.com/openembedded/meta-openembedded.git
+    commit: c0fcd7cca3760ef24e087ac4a31b8f357cb204da
+    layers:
+      meta-oe:
+  meta-raspberrypi:
+    url: https://github.com/agherzan/meta-raspberrypi.git
+    commit: 919588393f41b48cb6c5d832aa35e58a19b6762d
+    layers:
+      .:
+local_conf_header:
+  aion-edge-v0: |
+    # Experimental bring-up image. Do not set debug-tweaks or default passwords.
+    EXTRA_IMAGE_FEATURES = ""
+    ENABLE_UART = "1"
+    IMAGE_FSTYPES:append = " wic.bz2"
+    # Release security is not established until signed boot/update is implemented.
+    INHERIT += "buildhistory"
