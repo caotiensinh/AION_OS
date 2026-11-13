@@ -93,7 +93,12 @@ jobs:
         run: |
           set -euo pipefail
           export KAS_WORK_DIR="$GITHUB_WORKSPACE"
+          touch "$RUNNER_TEMP/aion-build-start.marker"
           "$RUNNER_TEMP/aion-kas-venv/bin/kas" build bsp/raspberrypi4-64.yml 2>&1 | tee "$RUNNER_TEMP/aion-bitbake.log"
+          python3 tests/verify_edge_artifacts.py \
+            --deploy "$GITHUB_WORKSPACE/build/tmp/deploy/images/raspberrypi4-64" \
+            --build-start-marker "$RUNNER_TEMP/aion-build-start.marker" \
+            --output "$RUNNER_TEMP/aion-image-evidence.json"
       - name: Record build evidence without secrets or whole disk images
         if: always()
         shell: bash
@@ -117,6 +122,7 @@ jobs:
           path: |
             ${{ runner.temp }}/aion-evidence.txt
             ${{ runner.temp }}/aion-image-sha256.txt
+            ${{ runner.temp }}/aion-image-evidence.json
             ${{ runner.temp }}/aion-kas-expanded.json
           if-no-files-found: warn
           retention-days: 14

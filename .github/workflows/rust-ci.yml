@@ -30,6 +30,8 @@ jobs:
           python3 tests/validate_kas_dump.py /tmp/aion-kas-expanded.json
       - name: Verify self-hosted BitBake workflow guardrails
         run: python3 -m unittest discover -s tests -p 'test_edge_workflow.py' -v
+      - name: Verify artifact acceptance gate positive and negative cases
+        run: python3 -m unittest discover -s tests -p 'test_edge_artifacts.py' -v
       - run: cargo fmt --all -- --check
       - run: cargo clippy --workspace --all-targets -- -D warnings
       - run: cargo test --workspace --all-targets
