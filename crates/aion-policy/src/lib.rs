@@ -123,7 +123,10 @@ mod tests {
     #[test]
     fn explicit_match_allows() {
         let rules = allowed_rules();
-        assert_eq!(PolicyEngine::new(&rules).evaluate(&proposal(), 110), Decision::Allow);
+        assert_eq!(
+            PolicyEngine::new(&rules).evaluate(&proposal(), 110),
+            Decision::Allow
+        );
     }
 
     #[test]
@@ -132,21 +135,36 @@ mod tests {
         let engine = PolicyEngine::new(&rules);
         let mut p = proposal();
         p.principal = "intruder";
-        assert_eq!(engine.evaluate(&p, 110), Decision::Deny(DenyReason::Unauthorized));
+        assert_eq!(
+            engine.evaluate(&p, 110),
+            Decision::Deny(DenyReason::Unauthorized)
+        );
         p = proposal();
         p.device_id = "edge-2";
-        assert_eq!(engine.evaluate(&p, 110), Decision::Deny(DenyReason::Unauthorized));
+        assert_eq!(
+            engine.evaluate(&p, 110),
+            Decision::Deny(DenyReason::Unauthorized)
+        );
         p = proposal();
         p.action = Action::ResumeInference;
-        assert_eq!(engine.evaluate(&p, 110), Decision::Deny(DenyReason::Unauthorized));
+        assert_eq!(
+            engine.evaluate(&p, 110),
+            Decision::Deny(DenyReason::Unauthorized)
+        );
     }
 
     #[test]
     fn rejects_expiry_and_future_issued_time() {
         let rules = allowed_rules();
         let engine = PolicyEngine::new(&rules);
-        assert_eq!(engine.evaluate(&proposal(), 120), Decision::Deny(DenyReason::Expired));
-        assert_eq!(engine.evaluate(&proposal(), 99), Decision::Deny(DenyReason::InvalidTimeWindow));
+        assert_eq!(
+            engine.evaluate(&proposal(), 120),
+            Decision::Deny(DenyReason::Expired)
+        );
+        assert_eq!(
+            engine.evaluate(&proposal(), 99),
+            Decision::Deny(DenyReason::InvalidTimeWindow)
+        );
     }
 
     #[test]
@@ -155,9 +173,15 @@ mod tests {
         let engine = PolicyEngine::new(&rules);
         let mut p = proposal();
         p.expires_at = 100;
-        assert_eq!(engine.evaluate(&p, 100), Decision::Deny(DenyReason::InvalidTimeWindow));
+        assert_eq!(
+            engine.evaluate(&p, 100),
+            Decision::Deny(DenyReason::InvalidTimeWindow)
+        );
         p.expires_at = 131;
-        assert_eq!(engine.evaluate(&p, 110), Decision::Deny(DenyReason::Unauthorized));
+        assert_eq!(
+            engine.evaluate(&p, 110),
+            Decision::Deny(DenyReason::Unauthorized)
+        );
     }
 
     #[test]
@@ -165,14 +189,26 @@ mod tests {
         let mut p = proposal();
         p.request_id = "";
         let rules = allowed_rules();
-        assert_eq!(PolicyEngine::new(&rules).evaluate(&p, 110), Decision::Deny(DenyReason::EmptyIdentity));
-        let zero_rules = [Rule { max_ttl_secs: 0, ..rules[0].clone() }];
-        assert_eq!(PolicyEngine::new(&zero_rules).evaluate(&proposal(), 110), Decision::Deny(DenyReason::Unauthorized));
+        assert_eq!(
+            PolicyEngine::new(&rules).evaluate(&p, 110),
+            Decision::Deny(DenyReason::EmptyIdentity)
+        );
+        let zero_rules = [Rule {
+            max_ttl_secs: 0,
+            ..rules[0].clone()
+        }];
+        assert_eq!(
+            PolicyEngine::new(&zero_rules).evaluate(&proposal(), 110),
+            Decision::Deny(DenyReason::Unauthorized)
+        );
     }
 
     #[test]
     fn boundary_at_issue_time_allowed() {
         let rules = allowed_rules();
-        assert_eq!(PolicyEngine::new(&rules).evaluate(&proposal(), 100), Decision::Allow);
+        assert_eq!(
+            PolicyEngine::new(&rules).evaluate(&proposal(), 100),
+            Decision::Allow
+        );
     }
 }
