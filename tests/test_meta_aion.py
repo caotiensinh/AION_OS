@@ -17,6 +17,11 @@ class MetaAionTests(unittest.TestCase):
         text = (LAYER / "conf/layer.conf").read_text()
         self.assertIn('LAYERSERIES_COMPAT_aion = "wrynose"', text)
         self.assertIn('BBFILE_COLLECTIONS += "aion"', text)
+        # LAYERDIR changes as BitBake parses subsequent layers. This must
+        # expand immediately to the path of meta-aion itself.
+        self.assertIn('BBFILE_PATTERN_aion := "^${LAYERDIR}/"', text)
+        self.assertNotIn('BBFILE_PATTERN_aion = "^${LAYERDIR}/"', text)
+        self.assertIn('LAYERDEPENDS_aion = "core"', text)
 
     def test_kas_local_layer_and_image(self):
         text = KAS.read_text()
