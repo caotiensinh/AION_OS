@@ -46,3 +46,7 @@ Do not use the GPIO Raspberry Pi or a production server for the full build witho
 The workflow now treats full BitBake success as **necessary but not sufficient**. A build PASS also requires `tests/verify_edge_artifacts.py` to find **one distinct fresh, non-empty** `aion-edge-image-*.wic.bz2` in the expected deploy folder, plus a fresh image package manifest explicitly containing `aion-health`. Stale images, missing manifests, ambiguous outputs and symlinks escaping the deployment tree are rejected.
 
 If accepted, it creates `aion-image-evidence.json` containing image and manifest SHA256, size and scope. This is an inventory checksum, not a cryptographic signature or proof of physical boot. No artifact is automatically flashed. Test images must still boot on the Pi 4B before T007 or AT-01 is accepted.
+
+## Layer parser regression correction (2026-11-13)
+
+A source audit discovered that `BBFILE_PATTERN_aion` was assigned with the deferred operator `=`. Because BitBake's `LAYERDIR` variable changes while parsing subsequent layers, the expression could be evaluated against another layer's directory, so the AION recipe files could fail to be assigned to the `aion` collection. It now uses immediate `:=` expansion and explicitly declares `LAYERDEPENDS_aion = "core"`. This follows the Yocto layer configuration recommendation. The host regression test checks this assignment; real `bitbake -p` confirmation still remains pending.
