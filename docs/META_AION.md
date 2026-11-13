@@ -1,6 +1,6 @@
 # meta-aion — first-party Edge layer (unbooted)
 
-This first-party Wrynose-compatible Yocto layer defines the experimental `aion-edge-image` and a local one-shot health reporter. **No BitBake parse, image build, ARM boot or hardware acceptance has passed.** This is not a secure production OS.
+This first-party Wrynose-compatible Yocto layer defines the experimental `aion-edge-image` and a local one-shot health reporter. **BitBake metadata parsing is now PASS; image build, ARM boot and hardware acceptance have not passed.** This is not a secure production OS.
 
 The reporter runs once at boot as an unprivileged systemd service, reads only `/proc/uptime` and selected memory metrics, prints a diagnostic and exits. There is no networking, LLM, permanent agent or privileged actuator.
 
@@ -50,3 +50,7 @@ If accepted, it creates `aion-image-evidence.json` containing image and manifest
 ## Layer parser regression correction (2026-11-13)
 
 A source audit discovered that `BBFILE_PATTERN_aion` was assigned with the deferred operator `=`. Because BitBake's `LAYERDIR` variable changes while parsing subsequent layers, the expression could be evaluated against another layer's directory, so the AION recipe files could fail to be assigned to the `aion` collection. It now uses immediate `:=` expansion and explicitly declares `LAYERDEPENDS_aion = "core"`. This follows the Yocto layer configuration recommendation. The host regression test checks this assignment; real `bitbake -p` confirmation still remains pending.
+
+## Metadata confirmation (2026-11-13)
+
+Actual BitBake parsing on Ubuntu 22.04 succeeded with the Wrynose source pins after the `S = "${UNPACKDIR}"` migration. [Run 43394533686](https://github.com/caotiensinh/AION_OS/actions/runs/43394533686) establishes only the recipe metadata gate (2,052 recipes, 0 errors); T007 and hardware acceptance remain TODO. See the [G1 evidence record](../specs/001-ai-native-platform/evidence/G1-metadata-2026-11-13.md).
