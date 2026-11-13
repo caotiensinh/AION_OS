@@ -163,8 +163,7 @@ pub fn decode(frame: &[u8]) -> Result<Record, DecodeError> {
     let source = u16::from_le_bytes([frame[10], frame[11]]);
     let value = [frame[12], frame[13], frame[14], frame[15]];
     let stamp = u64::from_le_bytes([
-        frame[16], frame[17], frame[18], frame[19],
-        frame[20], frame[21], frame[22], frame[23],
+        frame[16], frame[17], frame[18], frame[19], frame[20], frame[21], frame[22], frame[23],
     ]);
     let reason = u32::from_le_bytes([frame[24], frame[25], frame[26], frame[27]]);
     let record = match frame[5] {
