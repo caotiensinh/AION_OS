@@ -25,3 +25,7 @@
 - [ ] T023 Perform security review and release-candidate gate.
 
 The checkboxes describe *persisted engineering artifacts*, not overall product completion. T001–T003 do not imply any device support.
+
+## Verified G1 metadata sub-gate
+
+**PASS:** Real `bitbake -p` and both recipe `bitbake -e` checks at [G1 evidence](evidence/G1-metadata-2026-11-13.md). This is not a separate numbered task closure: T005 remains incomplete until full toolchain/firmware/source provenance; T007 stays incomplete until a real image is built and inspected; AT-01..04 remain TODO until hardware boot and fault testing.

@@ -34,6 +34,10 @@ The AI layer runs outside interrupt and hard-real-time control paths. Privileged
 
 **No platform is currently certified or supported.** Board-specific secure boot, cryptographic roots of trust, hardware acceleration and A/B update capability must be verified individually.
 
+## G1 verification status (2026-11-13)
+
+The **real BitBake metadata parse now passes** for `aion-health` and `aion-edge-image` against Yocto 6.0 Wrynose: 2,052 recipes parsed, 0 parse errors, and the image metadata includes `aion-health`. This is not an image build or a hardware boot. See the [persisted G1 evidence](specs/001-ai-native-platform/evidence/G1-metadata-2026-11-13.md) and [GitHub Actions log](https://github.com/caotiensinh/AION_OS/actions/runs/43394533686).
+
 ## Developer quickstart (policy library only)
 
 Requires a locally installed stable Rust toolchain; no paid services are needed.
