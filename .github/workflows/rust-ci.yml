@@ -19,6 +19,8 @@ jobs:
         run: python3 tests/validate_spec.py
       - name: Verify pinned Edge build manifest
         run: python3 -m unittest discover -s tests -p 'test_edge_build_config.py' -v
+      - name: Test first-party Yocto layer (host preflight)
+        run: python3 -m unittest discover -s tests -p 'test_meta_aion.py' -v
       - run: cargo fmt --all -- --check
       - run: cargo clippy --workspace --all-targets -- -D warnings
       - run: cargo test --workspace --all-targets

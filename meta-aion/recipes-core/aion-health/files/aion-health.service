@@ -1,0 +1,21 @@
+[Unit]
+Description=AION OS offline boot health snapshot
+After=local-fs.target
+ConditionPathExists=/proc/meminfo
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/aion-health
+User=nobody
+Group=nogroup
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+
+[Install]
+WantedBy=multi-user.target
