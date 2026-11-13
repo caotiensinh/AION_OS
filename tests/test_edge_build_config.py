@@ -21,7 +21,7 @@ def inspect(text):
         raise ValueError("target machine must be raspberrypi4-64")
     if not re.search(r"(?m)^distro: poky$", text):
         raise ValueError("target distro must be poky")
-    if not re.search(r"(?m)^target: core-image-minimal$", text):
+    if not re.search(r"(?m)^target: aion-edge-image$", text):
         raise ValueError("unexpected initial image")
     matches = re.findall(
         r"(?m)^  ([\w-]+):\n    url: https://github.com/([\w-]+/[\w-]+)\.git\n    commit: ([0-9a-f]{40})$",
