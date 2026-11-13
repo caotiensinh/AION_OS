@@ -1,0 +1,17 @@
+/target/
+**/__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.log
+*.swp
+.DS_Store
+.idea/
+.vscode/
+build/
+dist/
