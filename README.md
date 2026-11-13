@@ -52,6 +52,7 @@ This validates the small host-side policy prototype, **not** kernel integration 
 - [System architecture](docs/ARCHITECTURE.md)
 - [Variant matrix](docs/VARIANTS.md)
 - [AION Edge Yocto bring-up and build prerequisites](docs/EDGE_BUILD.md)
+- [First-party meta-aion layer](docs/META_AION.md)
 - [Decision: AI outside kernel](docs/adr/0001-kernel-boundary.md)
 - [Spec Kit constitution](.specify/memory/constitution.md)
 - [Platform specification](specs/001-ai-native-platform/spec.md)
@@ -65,6 +66,6 @@ This validates the small host-side policy prototype, **not** kernel integration 
 
 ## Project status
 
-The first deliverable is a documented foundation and a **pure, side-effect-free policy decision library**. There is no privileged executor, hardware integration, signed update mechanism, or boot image yet. Test results are meaningful only for what they actually exercise.
+The first deliverable is a documented foundation and a **pure, side-effect-free policy decision library**. There is no privileged executor, signed update mechanism or verified boot image yet; an unbooted first-party Yocto image recipe and one-shot health script now exist. Test results are meaningful only for what they actually exercise.
 
 See the [Apache 2.0 license](LICENSE). Contributions are welcome via reviewed pull requests. Do not report vulnerabilities in public issues.

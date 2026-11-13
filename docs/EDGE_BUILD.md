@@ -1,6 +1,6 @@
 # AION Edge G1 — reproducible inputs / unverified image
 
-**State:** source revisions selected and manifest validated; **no image has been built or booted**. This is an upstream `core-image-minimal` bring-up, **not an AION-branded OS release**.
+**State:** source revisions selected and manifest validated; **no image has been built or booted**. The manifest now selects the experimental first-party `aion-edge-image`; no image build or boot has been verified.
 
 ## Hardware and release
 - Raspberry Pi 4B, 64-bit (`raspberrypi4-64`).
@@ -32,4 +32,4 @@ Capture the resolved layer revisions, bitbake version, distro, `MACHINE`, `DISTR
 4. Save SHA256 hashes of image and test logs with the Git commit; reviewers must sign off AT-01..04 separately.
 
 ## Next integration
-Introduce `meta-aion` with a first-party image recipe, identity/health service and non-root resource-limited AI agent only after the upstream image and boot baseline are demonstrated. No signing, secure boot or rollback is claimed at this point.
+A first-party `meta-aion` image recipe and offline one-shot health script are included. BitBake parsing/build and Pi boot remain unverified; device identity, full health service and AI agent remain future work. No signing, secure boot or rollback is claimed at this point.
