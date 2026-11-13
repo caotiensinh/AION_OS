@@ -18,7 +18,7 @@ concurrency:
 jobs:
   metadata:
     name: Real BitBake recipe parse (no image build)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     timeout-minutes: 25
     steps:
       - name: Checkout project
@@ -35,6 +35,9 @@ jobs:
           echo "git_sha=$(git rev-parse HEAD)"
           df -h "$GITHUB_WORKSPACE"
           free -h
+      # Ubuntu 22.04 is supported by Yocto 6.0 and avoids the Ubuntu 24.04
+      # AppArmor restriction on unprivileged user namespaces; do not disable
+      # AppArmor globally or mutate host kernel security settings.
       - name: Install Yocto host dependencies (metadata only)
         shell: bash
         run: |
