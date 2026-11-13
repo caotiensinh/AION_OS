@@ -21,6 +21,13 @@ jobs:
         run: python3 -m unittest discover -s tests -p 'test_edge_build_config.py' -v
       - name: Test first-party Yocto layer (host preflight)
         run: python3 -m unittest discover -s tests -p 'test_meta_aion.py' -v
+      - name: Validate kas dump checker unit tests
+        run: PYTHONPATH=tests python3 -m unittest discover -s tests -p 'test_kas_dump_validator.py' -v
+      - name: Parse kas manifest with pinned kas 5.5
+        run: |
+          python3 -m pip install 'kas==5.5'
+          kas dump --format json bsp/raspberrypi4-64.yml > /tmp/aion-kas-expanded.json
+          python3 tests/validate_kas_dump.py /tmp/aion-kas-expanded.json
       - run: cargo fmt --all -- --check
       - run: cargo clippy --workspace --all-targets -- -D warnings
       - run: cargo test --workspace --all-targets
