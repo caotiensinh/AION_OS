@@ -5,7 +5,7 @@
 - [x] T003 Add host-side Rust policy decision prototype and unit tests.
 - [ ] T004 Capture CI and commit evidence for G0.
 - [ ] T005 Pin Yocto, Linux, BSP and compiler versions by immutable revision (5 layer Git SHAs pinned; full recipe/firmware/compiler provenance pending).
-- [ ] T006 Implement signed ARM64 image manifest.
+- [ ] T006 Implement signed ARM64 image manifest (offline Ed25519 canonical-file signer/verifier implemented; release-image integration and board trust enforcement pending).
 - [ ] T007 Build a Raspberry Pi 4B bootable image.
 - [ ] T008 Verify offline boot and AI-off watchdog.
 - [x] T009 Define capability/health wire schemas and fixtures (host codec; cross-target validation remains AT-21/22 TODO).
