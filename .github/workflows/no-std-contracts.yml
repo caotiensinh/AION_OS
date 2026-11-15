@@ -1,0 +1,22 @@
+name: ARM Cortex-M portable library checks
+on:
+  pull_request:
+    paths:
+      - 'crates/aion-admission/**'
+      - 'crates/aion-contract/**'
+      - '.github/workflows/no-std-contracts.yml'
+      - 'Cargo.toml'
+permissions:
+  contents: read
+jobs:
+  thumb:
+    name: no_std compile for Cortex-M4F (not firmware QA)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: thumbv7em-none-eabihf
+      - run: cargo check -p aion-admission --release --target thumbv7em-none-eabihf
+      - run: cargo check -p aion-contract --release --target thumbv7em-none-eabihf
