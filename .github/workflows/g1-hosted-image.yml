@@ -1,0 +1,121 @@
+name: G1 AION Edge ARM64 image build (standard public runner)
+
+on:
+  # One controlled integration attempt when this workflow is introduced.
+  pull_request:
+    paths:
+      - '.github/workflows/g1-hosted-image.yml'
+      - 'bsp/raspberrypi4-64.yml'
+      - 'tests/test_g1_hosted_image_workflow.py'
+  # Further experiments require an explicit manual action.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aion-g1-hosted-image-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  image:
+    # Never execute heavy builds for untrusted fork pull requests.
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'feat/g1-hosted-image-build') }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 320
+    env:
+      LANG: en_US.UTF-8
+      LC_ALL: en_US.UTF-8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resource and repository preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(id -u)" -ne 0
+          free_kib="$(df -Pk "$GITHUB_WORKSPACE" | awk 'NR==2 {print $4}')"
+          mem_kib="$(awk '/MemTotal:/ {print $2}' /proc/meminfo)"
+          echo "FREE_KIB=$free_kib MEMORY_KIB=$mem_kib"
+          echo "GIT_SHA=$(git rev-parse HEAD)"
+          if [ "$free_kib" -lt 78643200 ] || [ "$mem_kib" -lt 12582912 ]; then
+            echo "::error::Requires at least 75 GiB free and 12 GiB RAM; no build started."
+            exit 1
+          fi
+          test -f meta-aion/recipes-core/images/aion-edge-image.bb
+          test -f tests/verify_edge_artifacts.py
+          df -h "$GITHUB_WORKSPACE"
+          free -h
+      - name: Install Yocto-compatible host tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            build-essential chrpath cpio debianutils diffstat file gawk git \
+            iputils-ping libacl1 libcrypt-dev locales python3 python3-venv \
+            python3-git python3-jinja2 python3-pexpect python3-pip \
+            python3-subunit socat texinfo unzip wget xz-utils zstd
+          sudo locale-gen en_US.UTF-8
+      - name: Install pinned kas and verify manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m venv "$RUNNER_TEMP/aion-kas"
+          "$RUNNER_TEMP/aion-kas/bin/pip" install --disable-pip-version-check 'kas==5.5'
+          "$RUNNER_TEMP/aion-kas/bin/kas" dump --format json bsp/raspberrypi4-64.yml > "$RUNNER_TEMP/kas-dump.json"
+          python3 tests/validate_kas_dump.py "$RUNNER_TEMP/kas-dump.json"
+      - name: Build actual AION Edge WIC image
+        shell: bash
+        run: |
+          set -euo pipefail
+          export KAS_WORK_DIR="$GITHUB_WORKSPACE"
+          touch "$RUNNER_TEMP/aion-build-start.marker"
+          "$RUNNER_TEMP/aion-kas/bin/kas" build bsp/raspberrypi4-64.yml 2>&1 | tee "$RUNNER_TEMP/bitbake-build.log"
+      - name: Verify actual generated image and package manifest
+        id: gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          deploy="$GITHUB_WORKSPACE/build/tmp/deploy/images/raspberrypi4-64"
+          python3 tests/verify_edge_artifacts.py \
+            --deploy "$deploy" \
+            --build-start-marker "$RUNNER_TEMP/aion-build-start.marker" \
+            --output "$RUNNER_TEMP/aion-image-evidence.json"
+          image_path="$(python3 -c 'import json,sys; from pathlib import Path; print(Path(sys.argv[1]) / json.loads(Path(sys.argv[2]).read_text())["image"])' "$deploy" "$RUNNER_TEMP/aion-image-evidence.json")"
+          test -s "$image_path"
+          echo "image_path=$image_path" >> "$GITHUB_OUTPUT"
+      - name: Upload verified boot-image artifact and checksums
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: aion-edge-arm64-wic-${{ github.run_id }}
+          path: |
+            ${{ steps.gate.outputs.image_path }}
+            ${{ runner.temp }}/aion-image-evidence.json
+            ${{ runner.temp }}/kas-dump.json
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+      - name: Save bounded diagnostic summary
+        if: always()
+        shell: bash
+        run: |
+          set -eu
+          {
+            echo "git_sha=$(git rev-parse HEAD)"
+            echo "scope=image_build_not_hardware_boot"
+            echo "board=raspberrypi4-64"
+            echo "utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } > "$RUNNER_TEMP/g1-build-summary.txt"
+          df -h "$GITHUB_WORKSPACE" >> "$RUNNER_TEMP/g1-build-summary.txt" || true
+      - name: Upload small evidence even when build fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aion-g1-build-evidence-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/g1-build-summary.txt
+            ${{ runner.temp }}/aion-image-evidence.json
+            ${{ runner.temp }}/kas-dump.json
+          if-no-files-found: warn
+          retention-days: 7
