@@ -18,7 +18,7 @@ class InstallError(ValueError):
 
 
 def parse_var(environment: str, key: str) -> str:
-    match = re.search(rf'(?m)^{re.escape(key)}="([^"\\n]*)"$', environment)
+    match = re.search(rf'(?m)^{re.escape(key)}="([^"\n]*)"$', environment)
     if not match:
         raise InstallError(f"missing expanded BitBake variable {key}")
     return match.group(1)
