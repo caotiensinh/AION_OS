@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/aion-policy", "crates/aion-contract"]
+members = ["crates/aion-policy", "crates/aion-contract", "crates/aion-admission"]
 resolver = "2"
 
 [workspace.package]

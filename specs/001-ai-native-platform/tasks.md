@@ -9,7 +9,7 @@
 - [ ] T007 Build a Raspberry Pi 4B bootable image.
 - [ ] T008 Verify offline boot and AI-off watchdog.
 - [x] T009 Define capability/health wire schemas and fixtures (host codec; cross-target validation remains AT-21/22 TODO).
-- [ ] T010 Implement event queue and bounded inference admission.
+- [ ] T010 Implement event queue and bounded inference admission (fixed-capacity no_std prototype completed; runtime limits, real model integration and overload measurements pending).
 - [ ] T011 Implement model digest and platform compatibility validation.
 - [ ] T012 Add non-root service isolation and resource caps.
 - [ ] T013 Implement privileged executor with mandatory reauthorization.
