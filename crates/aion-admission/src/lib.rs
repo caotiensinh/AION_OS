@@ -71,7 +71,7 @@ impl<const N: usize> AdmissionQueue<N> {
 
     /// Enqueue only bounded, non-expired work. The caller never blocks.
     pub fn try_push(&mut self, event: Event, now_ms: u64) -> Result<(), Reject> {
-        let decision = self.validate(&event, now_ms).and_then(|()| {
+        let decision = self.validate(&event, now_ms).and({
             if self.len == N {
                 Err(Reject::Full)
             } else {
