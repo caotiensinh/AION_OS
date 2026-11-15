@@ -54,3 +54,7 @@ A source audit discovered that `BBFILE_PATTERN_aion` was assigned with the defer
 ## Metadata confirmation (2026-11-13)
 
 Actual BitBake parsing on Ubuntu 22.04 succeeded with the Wrynose source pins after the `S = "${UNPACKDIR}"` migration. [Run 43394533686](https://github.com/caotiensinh/AION_OS/actions/runs/43394533686) establishes only the recipe metadata gate (2,052 recipes, 0 errors); T007 and hardware acceptance remain TODO. See the [G1 evidence record](../specs/001-ai-native-platform/evidence/G1-metadata-2026-11-13.md).
+
+## Real health package installation task gate
+
+The [G1 AION health install workflow](../.github/workflows/g1-health-install.yml) on a free standard Ubuntu 22.04 runner executes `bitbake -c install aion-health` with pinned Yocto 6.0 source inputs. It then checks the **actual ${D} task output** for an executable `aion-health` and the non-root systemd oneshot unit, hashes both, and exercises the installed script against the runner's procfs (host smoke only). No full image, rootfs or physical boot is produced. This gate is considered PASS only when the actual GitHub Actions job completes successfully, not merely when the workflow is committed.
