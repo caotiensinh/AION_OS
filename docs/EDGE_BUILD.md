@@ -47,3 +47,11 @@ The first **real** metadata run reached BitBake on Ubuntu 22.04 but failed when 
 ### Verified G1 metadata outcome
 
 Real BitBake ran on a free standard Ubuntu 22.04 runner at PR #9. It successfully parsed **2,052 recipes**, discovered **3,575 targets**, and reported **0 parse errors**; `IMAGE_INSTALL="packagegroup-core-boot  aion-health"` was confirmed. [GitHub Actions run 43394533686](https://github.com/caotiensinh/AION_OS/actions/runs/43394533686). See [durable evidence](../specs/001-ai-native-platform/evidence/G1-metadata-2026-11-13.md). **No image binary or Pi boot was produced.**
+
+## Controlled full-image experiment on a free public runner
+
+A [G1 hosted image build workflow](../.github/workflows/g1-hosted-image.yml) performs a **real** `kas build` on a standard Ubuntu 22.04 runner in this public repository. For resource containment the Yocto manifest limits BitBake tasks and Make jobs to 2 and enables `rm_work`; full build is denied below 75 GiB free or 12 GiB RAM. This is an experiment, **not a supported build environment or guaranteed resource budget**.
+
+Unlike earlier metadata-only jobs, this workflow invokes the target image compilation, then requires a fresh non-empty `aion-edge-image-*.wic.bz2` and a matching package manifest with `aion-health`. If both pass it uploads the actual compressed image (seven-day retention) and JSON SHA256 evidence. A failed or timed-out job is **not** T007 PASS; read logs and fix the root cause. Even a successful build is not hardware AT-01: physical Raspberry Pi serial-console boot remains independent.
+
+A single integration pull request on branch `feat/g1-hosted-image-build` triggers the experimental hosted build; later invocations must be manually dispatched. The workflow has no flash or destructive disk-write commands. Do not confuse GitHub Actions artifact storage with a permanent release or secure update channel.

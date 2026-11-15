@@ -1,4 +1,4 @@
-# AION OS G1: pinned upstream baseline; no custom AION distro or image yet.
+# AION OS G1: pinned upstream + experimental first-party image; NOT hardware-verified.
 # Review upstream commit and supply-chain risks before updating any pin.
 header:
   version: 14
@@ -43,4 +43,6 @@ local_conf_header:
     INIT_MANAGER = "systemd"
     IMAGE_FSTYPES:append = " wic.bz2"
     # Release security is not established until signed boot/update is implemented.
-    INHERIT += "buildhistory"
+    INHERIT += "buildhistory rm_work"
+    BB_NUMBER_THREADS = "2"
+    PARALLEL_MAKE = "-j 2"
