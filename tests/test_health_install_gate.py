@@ -33,6 +33,18 @@ class HealthInstallTests(unittest.TestCase):
             'systemd_system_unitdir="/lib/systemd/system"\n'
         )
 
+    def test_isolated_recipe_workflow_avoids_full_cross_toolchain(self):
+        workflow = (Path(__file__).resolve().parents[1] /
+                    ".github/workflows/g1-health-install.yml").read_text()
+        self.assertIn('bitbake -b "$GITHUB_WORKSPACE/meta-aion/recipes-core/aion-health/aion-health_0.1.0.bb" -c install', workflow)
+        self.assertNotIn('bitbake -c install aion-health &&', workflow)
+        self.assertIn("timeout-minutes: 22", workflow)
+
+    def test_architecture_independent_recipe(self):
+        recipe = (Path(__file__).resolve().parents[1] /
+                  "meta-aion/recipes-core/aion-health/aion-health_0.1.0.bb").read_text()
+        self.assertIn("inherit systemd allarch", recipe)
+
     def test_valid_install(self):
         data = gate.verify(self.env)
         self.assertTrue(data["service_nonroot_oneshot"])

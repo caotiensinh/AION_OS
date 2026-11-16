@@ -55,6 +55,8 @@ A source audit discovered that `BBFILE_PATTERN_aion` was assigned with the defer
 
 Actual BitBake parsing on Ubuntu 22.04 succeeded with the Wrynose source pins after the `S = "${UNPACKDIR}"` migration. [Run 43394533686](https://github.com/caotiensinh/AION_OS/actions/runs/43394533686) establishes only the recipe metadata gate (2,052 recipes, 0 errors); T007 and hardware acceptance remain TODO. See the [G1 evidence record](../specs/001-ai-native-platform/evidence/G1-metadata-2026-11-13.md).
 
-## Real health package installation task gate
+## Isolated do_install verification after the 40-minute cancellation
 
-The [G1 AION health install workflow](../.github/workflows/g1-health-install.yml) on a free standard Ubuntu 22.04 runner executes `bitbake -c install aion-health` with pinned Yocto 6.0 source inputs. It then checks the **actual ${D} task output** for an executable `aion-health` and the non-root systemd oneshot unit, hashes both, and exercises the installed script against the runner's procfs (host smoke only). No full image, rootfs or physical boot is produced. This gate is considered PASS only when the actual GitHub Actions job completes successfully, not merely when the workflow is committed.
+[Workflow](../.github/workflows/g1-health-install.yml) first attempted a normal dependency-resolving `bitbake -c install aion-health` in [run 43772846513](https://github.com/caotiensinh/AION_OS/actions/runs/43772846513). The run was **cancelled at the 40-minute limit**, after roughly 595/685 tasks including GCC/CMake native toolchain compilation. No installation PASS was established.
+
+The corrected dedicated job uses BitBake's **single-buildfile `-b` mode**, which intentionally **does not follow dependencies from other recipes**, to run `do_install` of this architecture-independent shell/unit recipe in isolation. It then verifies the actual installed `${D}` directory. This is an isolated recipe task test only; it does NOT prove cross-recipe dependency resolution, packaging, image compilation or board boot. Full integration must still be demonstrated by PR #13's actual image build. The 22-minute cap prevents a second disproportionate build.

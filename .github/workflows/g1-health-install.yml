@@ -1,4 +1,4 @@
-name: G1 AION health real BitBake install (public runner)
+name: G1 AION health isolated BitBake install (public runner)
 
 on:
   pull_request:
@@ -18,9 +18,9 @@ concurrency:
 
 jobs:
   health:
-    name: Build and inspect aion-health do_install (not an OS image)
+    name: Inspect isolated aion-health do_install (not an OS image)
     runs-on: ubuntu-22.04
-    timeout-minutes: 40
+    timeout-minutes: 22
     steps:
       - uses: actions/checkout@v4
       - name: Host resource preflight
@@ -55,7 +55,7 @@ jobs:
           "$RUNNER_TEMP/aion-kas/bin/kas" --version
           "$RUNNER_TEMP/aion-kas/bin/kas" dump --format json bsp/raspberrypi4-64.yml > "$RUNNER_TEMP/kas-dump.json"
           python3 tests/validate_kas_dump.py "$RUNNER_TEMP/kas-dump.json"
-      - name: Run real aion-health BitBake do_install and verify installed files
+      - name: Run isolated aion-health BitBake do_install and inspect installed files
         shell: bash
         env:
           LANG: en_US.UTF-8
@@ -64,7 +64,7 @@ jobs:
           set -euo pipefail
           export KAS_WORK_DIR="$GITHUB_WORKSPACE"
           "$RUNNER_TEMP/aion-kas/bin/kas" shell bsp/raspberrypi4-64.yml \
-            -c 'bitbake -c install aion-health && bitbake -e aion-health > /tmp/aion-health.env && python3 "$GITHUB_WORKSPACE/tests/verify_health_install.py" --env /tmp/aion-health.env --out "$RUNNER_TEMP/aion-health-install-evidence.json"'
+            -c 'bitbake -b "$GITHUB_WORKSPACE/meta-aion/recipes-core/aion-health/aion-health_0.1.0.bb" -c install && bitbake -e aion-health > /tmp/aion-health.env && python3 "$GITHUB_WORKSPACE/tests/verify_health_install.py" --env /tmp/aion-health.env --out "$RUNNER_TEMP/aion-health-install-evidence.json"'
           echo "AION_HEALTH_INSTALL_VERIFIED=true"
       - name: Persist bounded verification summary
         if: always()
@@ -73,7 +73,7 @@ jobs:
           set -eu
           {
             echo "sha=$(git rev-parse HEAD)"
-            echo "scope=bitbake_do_install_only"
+            echo "scope=bitbake_isolated_recipe_do_install_without_cross_recipe_dependencies"
             echo "image_built=false"
             echo "board_booted=false"
             echo "utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
