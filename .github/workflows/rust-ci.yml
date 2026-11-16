@@ -32,6 +32,8 @@ jobs:
         run: python3 -m unittest discover -s tests -p 'test_edge_workflow.py' -v
       - name: Verify artifact acceptance gate positive and negative cases
         run: python3 -m unittest discover -s tests -p 'test_edge_artifacts.py' -v
+      - name: Test isolated do_install gate (positive and negative)
+        run: python3 -m unittest discover -s tests -p 'test_health_install_gate.py' -v
       - name: Test signed manifest authentication and tampering
         run: python3 -m unittest discover -s tests -p 'test_signed_manifest.py' -v
       - run: cargo fmt --all -- --check

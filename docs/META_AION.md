@@ -54,3 +54,13 @@ A source audit discovered that `BBFILE_PATTERN_aion` was assigned with the defer
 ## Metadata confirmation (2026-11-13)
 
 Actual BitBake parsing on Ubuntu 22.04 succeeded with the Wrynose source pins after the `S = "${UNPACKDIR}"` migration. [Run 43394533686](https://github.com/caotiensinh/AION_OS/actions/runs/43394533686) establishes only the recipe metadata gate (2,052 recipes, 0 errors); T007 and hardware acceptance remain TODO. See the [G1 evidence record](../specs/001-ai-native-platform/evidence/G1-metadata-2026-11-13.md).
+
+## Isolated do_install verification after the 40-minute cancellation
+
+[Workflow](../.github/workflows/g1-health-install.yml) first attempted a normal dependency-resolving `bitbake -c install aion-health` in [run 43772846513](https://github.com/caotiensinh/AION_OS/actions/runs/43772846513). The run was **cancelled at the 40-minute limit**, after roughly 595/685 tasks including GCC/CMake native toolchain compilation. No installation PASS was established.
+
+The corrected dedicated job uses BitBake's **single-buildfile `-b` mode**, which intentionally **does not follow dependencies from other recipes**, to run `do_install` of this architecture-independent shell/unit recipe in isolation. It then verifies the actual installed `${D}` directory. This is an isolated recipe task test only; it does NOT prove cross-recipe dependency resolution, packaging, image compilation or board boot. Full integration must still be demonstrated by PR #13's actual image build. The 22-minute cap prevents a second disproportionate build.
+
+### Fakeroot prerequisite diagnosis (2026-11-16)
+
+The first isolated buildfile attempt [run 43778341354](https://github.com/caotiensinh/AION_OS/actions/runs/43778341354) completed all pre-install tasks (8/9), but `do_install` failed to spawn `tmp/sysroots-components/x86_64/pseudo-native/usr/bin/pseudo`. Because `bitbake -b` excludes dependencies from **other** recipes, the native fakeroot dependency was not populated automatically. The workflow now explicitly runs `bitbake -c populate_sysroot pseudo-native` before the isolated `-b` task. This is a dependency-aware, test-scoped solution; it does not disable fakeroot, change ownership handling, or assert full package/image acceptance. The native tool build remains subject to bounded CI execution.
