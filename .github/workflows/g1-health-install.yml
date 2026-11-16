@@ -20,7 +20,7 @@ jobs:
   health:
     name: Inspect isolated aion-health do_install (not an OS image)
     runs-on: ubuntu-22.04
-    timeout-minutes: 22
+    timeout-minutes: 28
     steps:
       - uses: actions/checkout@v4
       - name: Host resource preflight
@@ -64,7 +64,7 @@ jobs:
           set -euo pipefail
           export KAS_WORK_DIR="$GITHUB_WORKSPACE"
           "$RUNNER_TEMP/aion-kas/bin/kas" shell bsp/raspberrypi4-64.yml \
-            -c 'bitbake -b "$GITHUB_WORKSPACE/meta-aion/recipes-core/aion-health/aion-health_0.1.0.bb" -c install && bitbake -e aion-health > /tmp/aion-health.env && python3 "$GITHUB_WORKSPACE/tests/verify_health_install.py" --env /tmp/aion-health.env --out "$RUNNER_TEMP/aion-health-install-evidence.json"'
+            -c 'bitbake -c populate_sysroot pseudo-native && bitbake -b "$GITHUB_WORKSPACE/meta-aion/recipes-core/aion-health/aion-health_0.1.0.bb" -c install && bitbake -e aion-health > /tmp/aion-health.env && python3 "$GITHUB_WORKSPACE/tests/verify_health_install.py" --env /tmp/aion-health.env --out "$RUNNER_TEMP/aion-health-install-evidence.json"'
           echo "AION_HEALTH_INSTALL_VERIFIED=true"
       - name: Persist bounded verification summary
         if: always()

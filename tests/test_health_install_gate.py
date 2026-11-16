@@ -38,7 +38,9 @@ class HealthInstallTests(unittest.TestCase):
                     ".github/workflows/g1-health-install.yml").read_text()
         self.assertIn('bitbake -b "$GITHUB_WORKSPACE/meta-aion/recipes-core/aion-health/aion-health_0.1.0.bb" -c install', workflow)
         self.assertNotIn('bitbake -c install aion-health &&', workflow)
-        self.assertIn("timeout-minutes: 22", workflow)
+        self.assertIn("timeout-minutes: 28", workflow)
+        # Preserve Yocto fakeroot so do_install stages files with correct ownership.
+        self.assertIn("bitbake -c populate_sysroot pseudo-native && bitbake -b", workflow)
 
     def test_architecture_independent_recipe(self):
         recipe = (Path(__file__).resolve().parents[1] /
